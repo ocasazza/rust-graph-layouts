@@ -19,6 +19,14 @@ pub struct Node {
     pub id: Id,
     pub position: Option<(f64, f64)>,
     pub metadata: HashMap<String, MetadataValue>,
+    #[serde(default)]
+    pub label: String,
+    #[serde(default)]
+    pub r#type: String,
+    #[serde(rename = "x", default)]
+    pub pos_x: f64,
+    #[serde(rename = "y", default)]
+    pub pos_y: f64,
 }
 
 impl Node {
@@ -27,11 +35,17 @@ impl Node {
             id: id.into(),
             position: None,
             metadata: HashMap::new(),
+            label: String::new(),
+            r#type: String::new(),
+            pos_x: 0.0,
+            pos_y: 0.0,
         }
     }
 
     pub fn with_position(mut self, x: f64, y: f64) -> Self {
         self.position = Some((x, y));
+        self.pos_x = x;
+        self.pos_y = y;
         self
     }
 
@@ -44,10 +58,25 @@ impl Node {
 /// Edge in the graph
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Edge {
+    #[serde(default = "generate_edge_id")]
     pub id: Id,
     pub source: Id,
     pub target: Id,
     pub metadata: HashMap<String, MetadataValue>,
+    #[serde(default)]
+    pub r#type: String,
+    #[serde(default = "default_weight")]
+    pub weight: f64,
+}
+
+fn default_weight() -> f64 {
+    1.0
+}
+
+fn generate_edge_id() -> String {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    static COUNTER: AtomicUsize = AtomicUsize::new(0);
+    format!("e{}", COUNTER.fetch_add(1, Ordering::Relaxed))
 }
 
 impl Edge {
@@ -57,6 +86,8 @@ impl Edge {
             source: source.into(),
             target: target.into(),
             metadata: HashMap::new(),
+            r#type: String::new(),
+            weight: 1.0,
         }
     }
 
@@ -107,6 +138,35 @@ impl Graph {
 
     pub fn remove_edge(&mut self, id: &Id) -> Option<Edge> {
         self.edges.remove(id)
+    }
+}
+
+/// Helper struct for deserializing graph JSON files
+#[derive(Debug, Deserialize)]
+pub struct GraphFile {
+    pub nodes: Vec<Node>,
+    pub edges: Vec<Edge>,
+}
+
+impl From<GraphFile> for Graph {
+    fn from(file: GraphFile) -> Self {
+        let mut graph = Graph::new();
+        
+        // Convert nodes array to HashMap
+        for mut node in file.nodes {
+            // Update position from x,y coordinates if present
+            if node.position.is_none() && (node.pos_x != 0.0 || node.pos_y != 0.0) {
+                node.position = Some((node.pos_x, node.pos_y));
+            }
+            graph.nodes.insert(node.id.clone(), node);
+        }
+        
+        // Convert edges array to HashMap
+        for edge in file.edges {
+            graph.edges.insert(edge.id.clone(), edge);
+        }
+        
+        graph
     }
 }
 

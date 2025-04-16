@@ -2,10 +2,12 @@ use wasm_bindgen::prelude::*;
 
 mod types;
 mod layout;
+mod benchmark;
 
 use layout::LayoutEngine;
 pub use types::{Graph, Node, Edge, Id, MetadataValue, LayoutOptions};
 pub use layout::algorithms::fcose::{FcoseLayoutEngine, FcoseOptions};
+pub use benchmark::{run_benchmark, run_all_benchmarks};
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global allocator.
 #[cfg(feature = "wee_alloc")]
@@ -85,5 +87,36 @@ impl LayoutManager {
         self.graph = serde_json::from_str(&json)
             .map_err(|e| JsValue::from_str(&format!("Failed to parse graph: {}", e)))?;
         Ok(())
+    }
+}
+
+// CLI interface for running benchmarks
+#[cfg(all(feature = "cli", not(target_arch = "wasm32")))]
+pub fn main() {
+    use std::env;
+
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 3 {
+        eprintln!("Usage: {} benchmark <output_csv_path>", args[0]);
+        std::process::exit(1);
+    }
+
+    let command = &args[1];
+    let output_path = &args[2];
+
+    match command.as_str() {
+        "benchmark" => {
+            match run_all_benchmarks(output_path) {
+                Ok(_) => println!("Benchmarks completed successfully"),
+                Err(e) => {
+                    eprintln!("Error running benchmarks: {}", e);
+                    std::process::exit(1);
+                }
+            }
+        }
+        _ => {
+            eprintln!("Unknown command: {}", command);
+            std::process::exit(1);
+        }
     }
 }

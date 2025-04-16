@@ -9,9 +9,15 @@ license = "MIT"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[[bin]]
+name = "rust-graph-layouts"
+path = "src/lib.rs"
+required-features = ["cli"]
+
 [features]
 default = ["console_error_panic_hook"]
 wee_alloc = ["dep:wee_alloc"]
+cli = ["chrono"]
 
 [dependencies]
 wasm-bindgen = "0.2.84"
@@ -23,6 +29,7 @@ rand = "0.8"
 getrandom = { version = "0.2", features = ["js"] }
 console_error_panic_hook = { version = "0.1.7", optional = true }
 wee_alloc = { version = "0.4.5", optional = true }
+chrono = { version = "0.4", optional = true }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.34"
