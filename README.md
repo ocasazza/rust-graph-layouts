@@ -1,85 +1,110 @@
-<div align="center">
+# Rust Graph Layouts
 
-  <h1><code>wasm-pack-template</code></h1>
+A WebAssembly library for efficient graph layout algorithms. This library provides a collection of layout algorithms for graph visualization, optimized for performance and memory efficiency.
 
-  <strong>A template for kick starting a Rust and WebAssembly project using <a href="https://github.com/rustwasm/wasm-pack">wasm-pack</a>.</strong>
+## Features
 
-  <p>
-    <a href="https://travis-ci.org/rustwasm/wasm-pack-template"><img src="https://img.shields.io/travis/rustwasm/wasm-pack-template.svg?style=flat-square" alt="Build Status" /></a>
-  </p>
+- Core graph data structures for nodes and edges
+- Multiple layout algorithms:
+  - fCoSE (Force-directed Compound Spring Embedder)
+  - More algorithms coming soon (Dagre, KLay, etc.)
+- WASM bindings for seamless JavaScript integration
+- JSON serialization support
+- Metadata support for nodes and edges
 
-  <h3>
-    <a href="https://rustwasm.github.io/docs/wasm-pack/tutorials/npm-browser-packages/index.html">Tutorial</a>
-    <span> | </span>
-    <a href="https://discordapp.com/channels/442252698964721669/443151097398296587">Chat</a>
-  </h3>
+## Building
 
-  <sub>Built with 🦀🕸 by <a href="https://rustwasm.github.io/">The Rust and WebAssembly Working Group</a></sub>
-</div>
+This library uses `wasm-pack` to build WebAssembly modules. To build the project:
 
-## About
-
-[**📚 Read this template tutorial! 📚**][template-docs]
-
-This template is designed for compiling Rust libraries into WebAssembly and
-publishing the resulting package to NPM.
-
-Be sure to check out [other `wasm-pack` tutorials online][tutorials] for other
-templates and usages of `wasm-pack`.
-
-[tutorials]: https://rustwasm.github.io/docs/wasm-pack/tutorials/index.html
-[template-docs]: https://rustwasm.github.io/docs/wasm-pack/tutorials/npm-browser-packages/index.html
-
-## 🚴 Usage
-
-### 🐑 Use `cargo generate` to Clone this Template
-
-[Learn more about `cargo generate` here.](https://github.com/ashleygwilliams/cargo-generate)
-
-```
-cargo generate --git https://github.com/rustwasm/wasm-pack-template.git --name my-project
-cd my-project
+1. Install wasm-pack if you haven't already:
+```bash
+cargo install wasm-pack
 ```
 
-### 🛠️ Build with `wasm-pack build`
-
-```
-wasm-pack build
-```
-
-### 🔬 Test in Headless Browsers with `wasm-pack test`
-
-```
-wasm-pack test --headless --firefox
+2. Build the library:
+```bash
+wasm-pack build --target web
 ```
 
-### 🎁 Publish to NPM with `wasm-pack publish`
+This will generate the `pkg` directory containing the WebAssembly module and JavaScript bindings.
 
+## Usage
+
+### In JavaScript/TypeScript
+
+```javascript
+import init, { LayoutManager } from 'rust-graph-layouts';
+
+// Initialize the WASM module
+await init();
+
+// Create a new layout manager
+const manager = new LayoutManager();
+
+// Add nodes and edges
+manager.add_node("1", null, null);  // Position will be set by layout
+manager.add_node("2", null, null);
+manager.add_edge("e1", "1", "2");
+
+// Configure and apply fCoSE layout
+const options = {
+  base: {
+    padding: 30
+  },
+  quality: "default",
+  node_repulsion: 4500,
+  ideal_edge_length: 50,
+  node_overlap: 10
+};
+
+// Apply layout and get the result
+const result = manager.apply_fcose_layout(JSON.stringify(options));
+const graph = JSON.parse(result);
+
+// Access node positions
+console.log(graph.nodes["1"].position);  // [x, y] coordinates
 ```
-wasm-pack publish
+
+### In Rust
+
+```rust
+use rust_graph_layouts::{Graph, Node, Edge, FcoseLayoutEngine, FcoseOptions};
+
+// Create a new graph
+let mut graph = Graph::new();
+
+// Add nodes and edges
+graph.add_node(Node::new("1"));
+graph.add_node(Node::new("2"));
+graph.add_edge(Edge::new("e1", "1", "2"));
+
+// Configure and apply layout
+let options = FcoseOptions::default();
+let engine = FcoseLayoutEngine::new(options);
+engine.apply_layout(&mut graph).unwrap();
+
+// Access node positions
+if let Some(pos) = graph.nodes.get("1").unwrap().position {
+    println!("Node 1 position: ({}, {})", pos.0, pos.1);
+}
 ```
 
-## 🔋 Batteries Included
+## Layout Algorithms
 
-* [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) for communicating
-  between WebAssembly and JavaScript.
-* [`console_error_panic_hook`](https://github.com/rustwasm/console_error_panic_hook)
-  for logging panic messages to the developer console.
-* `LICENSE-APACHE` and `LICENSE-MIT`: most Rust projects are licensed this way, so these are included for you
+### fCoSE (Force-directed Compound Spring Embedder)
+
+The fCoSE algorithm is a force-directed layout algorithm optimized for compound graphs. It uses:
+- Node-to-node repulsion
+- Edge-based attraction
+- Overlap removal
+- Simulated annealing for optimization
+
+Configuration options:
+- `quality`: Layout quality level ("draft", "default", "proof")
+- `node_repulsion`: Repulsion force between nodes
+- `ideal_edge_length`: Preferred length of edges
+- `node_overlap`: Percentage of allowed node overlap (0-100)
 
 ## License
 
-Licensed under either of
-
-* Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
-* MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
-
-at your option.
-
-### Contribution
-
-Unless you explicitly state otherwise, any contribution intentionally
-submitted for inclusion in the work by you, as defined in the Apache-2.0
-license, shall be dual licensed as above, without any additional terms or
-conditions.
-# jump-cannon
+MIT License
