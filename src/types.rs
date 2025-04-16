@@ -18,6 +18,7 @@ pub enum MetadataValue {
 pub struct Node {
     pub id: Id,
     pub position: Option<(f64, f64)>,
+    #[serde(default)]
     pub metadata: HashMap<String, MetadataValue>,
     #[serde(default)]
     pub label: String,
@@ -62,6 +63,7 @@ pub struct Edge {
     pub id: Id,
     pub source: Id,
     pub target: Id,
+    #[serde(default)]
     pub metadata: HashMap<String, MetadataValue>,
     #[serde(default)]
     pub r#type: String,
