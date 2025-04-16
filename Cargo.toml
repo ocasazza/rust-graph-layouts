@@ -25,7 +25,7 @@ js-sys = "0.3"
 web-sys = { version = "0.3", features = ["console"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-rand = "0.8"
+rand = "0.9"
 getrandom = { version = "0.2", features = ["js"] }
 console_error_panic_hook = { version = "0.1.7", optional = true }
 wee_alloc = { version = "0.4.5", optional = true }
