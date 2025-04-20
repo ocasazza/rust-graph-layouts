@@ -3,11 +3,13 @@ use wasm_bindgen::prelude::*;
 mod types;
 mod layout;
 mod benchmark;
+mod file_parsers;
 
 use layout::LayoutEngine;
 pub use types::{Graph, Node, Edge, Id, MetadataValue, LayoutOptions};
 pub use layout::algorithms::fcose::{FcoseLayoutEngine, FcoseOptions};
 pub use benchmark::{run_benchmark, run_all_benchmarks};
+use file_parsers::parse_graph_file;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global allocator.
 #[cfg(feature = "wee_alloc")]
@@ -86,6 +88,13 @@ impl LayoutManager {
     pub fn load_graph_json(&mut self, json: String) -> Result<(), JsValue> {
         self.graph = serde_json::from_str(&json)
             .map_err(|e| JsValue::from_str(&format!("Failed to parse graph: {}", e)))?;
+        Ok(())
+    }
+
+    /// Parse and load a graph from various file formats
+    pub fn parse_and_load_graph(&mut self, content: String, file_type: String) -> Result<(), JsValue> {
+        self.graph = parse_graph_file(&content, &file_type)
+            .map_err(|e| JsValue::from_str(&format!("Failed to parse file: {}", e)))?;
         Ok(())
     }
 }
