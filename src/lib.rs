@@ -4,6 +4,7 @@ mod types;
 mod layout;
 mod benchmark;
 mod file_parsers;
+mod utils;
 
 use layout::LayoutEngine;
 pub use types::{Graph, Node, Edge, Id, MetadataValue, LayoutOptions};
