@@ -26,7 +26,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 csv = "1.2"
 rand = "0.8"
-getrandom = { version = "0.2", features = ["js"] }
+getrandom = { version = "0.4", features = ["js"] }
 wee_alloc = { version = "0.4.5", optional = true }
 chrono = { version = "0.4", optional = true }
 
